@@ -63,7 +63,8 @@ public class RunTask implements Runnable {
         int      hour     = calendar.get(Calendar.HOUR_OF_DAY);
         int      minute   = calendar.get(Calendar.MINUTE);
         int      second   = calendar.get(Calendar.SECOND);
-        Log.i("RunTask", "running...now("+month+"-"+day+" "+hour+":"+minute+":"+second+")"+
+        String   timeNow  = String.format(Locale.getDefault(), "%02d-%02d %02d:%02d:%02d", month, day, hour, minute, second);
+        Log.i("RunTask", "running...now("+timeNow+")"+
                 ", target-time: "+String.format(Locale.getDefault(), "%02d:%02d:00", time[0], time[1]));
         if(hour == time[0] && minute == time[1]) {
             Log.i("RunTask", "time is OK!!!");
