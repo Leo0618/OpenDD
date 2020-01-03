@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.PowerManager;
-import android.util.Log;
 import android.widget.Toast;
 
 
@@ -34,10 +33,7 @@ public class RunTask implements Runnable {
 
     private RunTask() {}
 
-    private int[] time;
-
     public void start() {
-        time = SPUtil.getTime();
         MyApp.uiHandler.post(this);
     }
 
@@ -56,26 +52,35 @@ public class RunTask implements Runnable {
                 mWakeLock.acquire(3000);
             }
         } catch(Throwable e) {e.printStackTrace();}
-        Toast.makeText(MyApp.context, "running...", Toast.LENGTH_SHORT).show();
-        Calendar calendar = Calendar.getInstance();
-        int      month    = calendar.get(Calendar.MONTH);
-        int      day      = calendar.get(Calendar.DATE);
-        int      hour     = calendar.get(Calendar.HOUR_OF_DAY);
-        int      minute   = calendar.get(Calendar.MINUTE);
-        int      second   = calendar.get(Calendar.SECOND);
-        String   timeNow  = String.format(Locale.getDefault(), "%02d-%02d %02d:%02d:%02d", month, day, hour, minute, second);
-        Log.i("RunTask", "running...now("+timeNow+")"+
-                ", target-time: "+String.format(Locale.getDefault(), "%02d:%02d:00", time[0], time[1]));
-        if(hour == time[0] && minute == time[1]) {
-            Log.i("RunTask", "time is OK!!!");
-            launch();
-            stop();
+        boolean isNotify = SPUtil.isNotification();
+        Toast.makeText(MyApp.context, "running...byNotify="+isNotify, Toast.LENGTH_SHORT).show();
+        if(!isNotify) {
+            int[]    time     = SPUtil.getTime();
+            Calendar calendar = Calendar.getInstance();
+            int      month    = calendar.get(Calendar.MONTH);
+            int      day      = calendar.get(Calendar.DATE);
+            int      hour     = calendar.get(Calendar.HOUR_OF_DAY);
+            int      minute   = calendar.get(Calendar.MINUTE);
+            int      second   = calendar.get(Calendar.SECOND);
+            String   timeNow  = String.format(Locale.getDefault(), "%02d-%02d %02d:%02d:%02d", month, day, hour, minute, second);
+            LogUtil.i("RunTask", "running...now("+timeNow+")"+
+                    ", target-time: "+String.format(Locale.getDefault(), "%02d:%02d:00", time[0], time[1]));
+            if(hour == time[0] && minute == time[1]) {
+                LogUtil.i("RunTask", "time is OK!!!");
+                launch();
+                stop();
+            } else {
+                MyApp.uiHandler.postDelayed(this, 5_000);
+            }
         } else {
+            if(!Util.isAccessibilitySettingsOn(MyApp.context, AccServiceQQ.class)) {
+                Toast.makeText(MyApp.context, "需要开启无障碍服务功能!!!", Toast.LENGTH_SHORT).show();
+            }
             MyApp.uiHandler.postDelayed(this, 5_000);
         }
     }
 
-    private void launch() {
+    public void launch() {
         PackageManager packageManager = MyApp.context.getPackageManager();
         Intent         intent         = packageManager.getLaunchIntentForPackage("com.alibaba.android.rimet");
         if(intent == null) {

@@ -88,4 +88,12 @@ public class SPUtil {
         result[1] = getInt("minute", 5);
         return result;
     }
+
+    public static void saveType(boolean isNotify) {
+        putBoolean("isNotify", isNotify);
+    }
+
+    public static boolean isNotification() {
+        return getBoolean("isNotify", false);
+    }
 }
